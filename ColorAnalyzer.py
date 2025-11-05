@@ -8,8 +8,7 @@ from io import BytesIO
 import pandas as pd
 
 
-
-#分析函數
+# 分析函數
 def analyze_colors(image_data, k):
     img = image_data.convert('RGBA')
     img_np = np.array(img)
@@ -18,7 +17,7 @@ def analyze_colors(image_data, k):
     opaque_mask = alpha_channel > 0
     pixels_rgb_opaque = pixels_rgba[opaque_mask, :3]
 
-    #特殊情況：圖片是完全透明的
+    # 特殊情況：圖片是完全透明的
     if pixels_rgb_opaque.shape[0] == 0:
         st.warning("這是一張完全透明的圖片，無法分析顏色。")
         return [], []
@@ -38,7 +37,8 @@ def analyze_colors(image_data, k):
 
     return sorted_colors, sorted_percentages
 
-#圓餅圖函數
+
+# 圓餅圖函數
 def create_pie_chart(colors, percentages):
     colors_normalized = [tuple(c / 255.0) for c in colors]
     fig, ax = plt.subplots(figsize=(6, 6))
@@ -60,7 +60,8 @@ def create_pie_chart(colors, percentages):
     plt.tight_layout()
     return fig
 
-#Palette函數
+
+# Palette函數
 def create_palette_image(colors, percentages, height=100):
     width = 600
     img = Image.new("RGB", (width, height))
@@ -82,23 +83,26 @@ def create_palette_image(colors, percentages, height=100):
 
     return img
 
-#RGB轉HEX函數
+
+# RGB轉HEX函數
 def rgb_to_hex(rgb):
     r, g, b = int(rgb[0]), int(rgb[1]), int(rgb[2])
     return f'#{r:02x}{g:02x}{b:02x}'
 
-#計算亮度函數
+
+# 計算亮度函數
 def get_brightness(rgb):
     r, g, b = rgb
-    #Luma (Y') formula: Y' = 0.299R + 0.587G + 0.114B
+    # Luma (Y') formula: Y' = 0.299R + 0.587G + 0.114B
     return 0.299 * r + 0.587 * g + 0.114 * b
 
-#標題
+
+# 標題
 st.set_page_config(layout="wide")
-st.title("圖片色調分析器")
+st.title("圖片色調分析程式")
 st.write("請上傳一張圖片，程式將使用演算法分析圖片的主要配色。")
 
-#側欄
+# 側欄
 st.sidebar.header("設定")
 k_slider = st.sidebar.slider("請選擇要分析的色調數量", min_value=1, max_value=10, value=5)
 st.sidebar.subheader("顯示選項")
@@ -117,7 +121,7 @@ st.sidebar.markdown("---")
 with st.sidebar.expander("關於此程式"):
     st.markdown("此程式使用 **K-Means Clustering** 來對圖片中的所有像素進行分群。")
 
-#主畫面
+# 主畫面
 uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
 
 if uploaded_file is not None:
