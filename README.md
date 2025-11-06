@@ -31,8 +31,9 @@ https://coloranalyzer-kxdykucamsgwu7k7ztq88r.streamlit.app/ <br>
 要運行此程式，至少需要以下 Python 套件：
 
 * **Streamlit**
-* **Scikit-learn**
-* **Pillow**
+* **Numpy**
 * **Matplotlib**
+* **Scikit-Learn**
+* **Pillow**
 * **Pandas**
-* **NumPy**
+* **Requests**
