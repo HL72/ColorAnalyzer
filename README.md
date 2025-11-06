@@ -5,7 +5,7 @@ https://coloranalyzer-kxdykucamsgwu7k7ztq88r.streamlit.app/ <br>
 
 ## Description
 
-此程式接收圖片的顏色列表（`colors`），使用 K-Means Clustering 來對圖片中的所有像素進行分群後進行分析，並在介面為列表中的每種顏色提供詳細的資訊，包括其 HEX 色碼和通用的英文名稱。
+此程式接收圖片的顏色列表（`colors`），使用 K-Means Clustering 來對圖片中的所有像素進行分群後進行分析，並在介面為列表中的每種顏色提供詳細的資訊，包括其 HEX 與 RGB 色碼。
 
 ## Features
 
