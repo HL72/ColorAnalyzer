@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw
 from collections import Counter
 from io import BytesIO
 import pandas as pd
-
+import requests
 
 # 分析函數
 def analyze_colors(image_data, k):
@@ -96,7 +96,6 @@ def get_brightness(rgb):
     # Luma (Y') formula: Y' = 0.299R + 0.587G + 0.114B
     return 0.299 * r + 0.587 * g + 0.114 * b
 
-
 # 標題
 st.set_page_config(layout="wide")
 st.title("圖片色調分析程式")
@@ -122,12 +121,37 @@ with st.sidebar.expander("關於此程式"):
     st.markdown("此程式使用 **K-Means Clustering** 來對圖片中的所有像素進行分群。")
 
 # 主畫面
-uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
+image = None
 
-if uploaded_file is not None:
+tab1, tab2 = st.tabs(["上傳圖片檔案", "使用圖片網址 (URL)"])
+
+# 檔案上傳
+with tab1:
+    uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
+    if uploaded_file is not None:
+        try:
+            image = Image.open(uploaded_file)
+        except Exception as e:
+            st.error(f"無法讀取上傳的檔案：{e}")
+
+# URL輸入
+with tab2:
+    url = st.text_input("請貼上圖片網址：", placeholder="https://example.com/image.png")
+    if url:
+        try:
+            with st.spinner("正在從網址下載圖片..."):
+                response = requests.get(url)
+                response.raise_for_status()
+                image = Image.open(BytesIO(response.content))
+        except requests.exceptions.RequestException as e:
+            st.error(f"無法從網址下載圖片。請檢查網址是否正確，或圖片是否可公開存取。錯誤：{e}")
+        except Exception as e:
+            st.error(f"無法處理來自網址的圖片，請確認網址指向的是有效的圖片檔案。錯誤：{e}")
+
+if image is not None:
     try:
-        image = Image.open(uploaded_file)
         display_image = image.convert('RGB')
+
         col1, col2 = st.columns([1, 2])
 
         with col1:
@@ -150,9 +174,9 @@ if uploaded_file is not None:
                 percentages = [item[1] for item in combined_results]
 
             if colors:
-                tab1, tab2, tab3 = st.tabs(["顏色佔比", "色碼百分比、Palette", "詳細色碼"])
+                tab1_res, tab2_res, tab3_res = st.tabs(["顏色佔比", "色碼百分比、Palette", "詳細色碼"])
 
-                with tab1:
+                with tab1_res:
                     st.subheader("主要顏色佔比")
 
                     if chart_type == "圓餅圖":
@@ -160,17 +184,13 @@ if uploaded_file is not None:
                         st.pyplot(fig)
 
                     elif chart_type == "長條圖":
-
                         hex_colors = [rgb_to_hex(c) for c in colors]
-
                         df_data = {
                             "Percentage": percentages,
                             "ColorHex": hex_colors,
                         }
                         df = pd.DataFrame(df_data, index=hex_colors)
-
                         st.write("由佔比高至低排序（或依您選擇的排序方式）")
-
                         st.bar_chart(
                             df,
                             y="Percentage",
@@ -179,9 +199,8 @@ if uploaded_file is not None:
                         )
                         st.caption("提示：將滑鼠懸停在長條上可查看精確百分比。")
 
-                with tab2:
+                with tab2_res:
                     st.write("**色碼百分比**")
-
                     num_colors = len(colors)
                     num_cols = min(num_colors, 5)
 
@@ -213,28 +232,23 @@ if uploaded_file is not None:
 
                     st.markdown(f"---")
                     st.write("")
-
                     pal_img = create_palette_image(colors, percentages, height=80)
                     st.image(pal_img, use_container_width=False)
-
                     buf = BytesIO()
                     pal_img.save(buf, format="PNG")
                     buf.seek(0)
                     st.download_button("下載 Palette", data=buf, file_name="Palette.png", mime="image/png")
 
-                with tab3:
+                with tab3_res:
                     for i in range(len(colors)):
                         rgb = colors[i]
                         hex_color = rgb_to_hex(rgb).upper()
                         rgb_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-
                         st.markdown(f"--- \n #### {i + 1}. {hex_color.upper()} ({percentages[i]:.1%})")
-
                         st.markdown(f"""
                                 <div style="width:100%; height: 40px; background-color:{hex_color}; border-radius: 5px; border: 1px solid #ddd;"></div>
                                 """, unsafe_allow_html=True)
                         st.write("")
-
                         st.write("**HEX**")
                         st.code(hex_color, language="css")
                         st.write("**RGB**")
@@ -247,4 +261,4 @@ if uploaded_file is not None:
         st.error(f"分析失敗，請確認圖片格式是否正確。錯誤訊息：{e}")
 
 else:
-    st.info("請上傳一張圖片以開始分析。")
+    st.info("請上傳一張圖片或貼上網址以開始分析。")
